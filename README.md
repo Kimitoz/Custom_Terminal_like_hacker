@@ -1,6 +1,6 @@
 # eDEX-UI (SSH Remote Monitor Fork)
-<img width="1254" height="1254" alt="ChatGPT Image 15 июл  2026 г , 13_20_45" src="https://github.com/user-attachments/assets/7345c65d-fff4-42b6-bf50-b54757f8267c" />
-> A fork of [eDEX-UI](https://github.com/GitSquared/edex-ui) by [@GitSquared](https://github.com/GitSquared) — a fullscreen, cross-platform terminal emulator and system monitor that looks and feels like a sci-fi computer interface.
+<img width="1536" height="1024" alt="ChatGPT Image 15 июл  2026 г , 13_27_29" src="https://github.com/user-attachments/assets/63ca297b-6e8c-46f0-a90e-e0cec6649d44" />
+A fork of [eDEX-UI](https://github.com/GitSquared/edex-ui) by [@GitSquared](https://github.com/GitSquared) — a fullscreen, cross-platform terminal emulator and system monitor that looks and feels like a sci-fi computer interface.
 
 **⚠️ This project is a work in progress.** We are actively extending the original project with new features. The original author has archived the project; this fork continues development.
 
