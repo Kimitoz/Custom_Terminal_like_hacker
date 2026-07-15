@@ -3,6 +3,46 @@ class FilesystemDisplay {
         if (!opts.parentId) throw "Missing options";
 
         const fs = require("fs");
+const remoteFS = {
+    _cache: {},
+    _request: (dirPath, cb) => {
+        if (remoteFS._cache[dirPath]) { cb(null, remoteFS._cache[dirPath]); return; }
+        const {ipcRenderer} = require("electron");
+        ipcRenderer.once("fs-remote-reply-" + dirPath, (e, result) => {
+            if (result.error) { cb(new Error(result.error)); return; }
+            remoteFS._cache[dirPath] = result.data;
+            cb(null, result.data);
+        });
+        ipcRenderer.send("fs-remote-readdir", dirPath);
+    },
+    readdir: (dirPath, cb) => {
+        remoteFS._request(dirPath, (err, data) => {
+            if (err) { cb(err); return; }
+            cb(null, data.items.map(i => i.name));
+        });
+    },
+    lstat: (filePath, cb) => {
+        const dir = filePath.substring(0, filePath.lastIndexOf("/")) || "/";
+        const name = filePath.substring(filePath.lastIndexOf("/") + 1);
+        remoteFS._request(dir, (err, data) => {
+            if (err) { cb(err); return; }
+            const item = data.items.find(i => i.name === name);
+            if (!item) { cb(new Error("Not found")); return; }
+            cb(null, {
+                isDirectory: () => item.isDir,
+                isFile: () => !item.isDir,
+                isSymbolicLink: () => false,
+                isBlockDevice: () => false,
+                isCharacterDevice: () => false,
+                isFIFO: () => false,
+                isSocket: () => false,
+                size: item.size,
+                mtime: new Date(item.mtime * 1000)
+            });
+        });
+    }
+};
+
         const path = require("path");
         this.cwd = [];
         this.cwd_path = null;
@@ -70,6 +110,14 @@ class FilesystemDisplay {
             get: function(fs, prop) {
                 if (prop in fs) {
                     return function(...args) {
+                if (window.remoteMode && (prop === "readdir" || prop === "lstat")) {
+                    return new Promise((resolve, reject) => {
+                        remoteFS[prop](args[0], (err, result) => {
+                            if (err) reject(err); else resolve(result);
+                        });
+                    });
+                }
+                
                         return new Promise((resolve, reject) => {
                             fs[prop](...args, (err, d) => {
                                 if (typeof err !== "undefined" && err !== null) reject(err);
@@ -175,7 +223,7 @@ class FilesystemDisplay {
                 }
             });
 
-            this.reCalculateDiskUsage(tcwd);
+            if (!window.remoteMode) this.reCalculateDiskUsage(tcwd);
 
             this.cwd = [];
 
@@ -183,7 +231,7 @@ class FilesystemDisplay {
                 if (content.length === 0) resolve();
 
                 content.forEach(async (file, i) => {
-                    let fstat = await this._asyncFSwrapper.lstat(path.join(tcwd, file)).catch(e => {
+                    let fstat = await this._asyncFSwrapper.lstat(window.remoteMode ? tcwd + "/" + file : path.join(tcwd, file)).catch(e => {
                         if (!e.message.includes("EPERM") && !e.message.includes("EBUSY")) {
                             reject();
                         }

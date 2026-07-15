@@ -1,3 +1,24 @@
+
+window.remoteMode = false;
+setInterval(() => {
+    const http = require("http");
+    http.get("http://localhost:4001/stats", res => {
+        const wasRemote = window.remoteMode;
+        window.remoteMode = res.statusCode === 200;
+        if (window.remoteMode && !wasRemote && window.fsDisp) {
+            window.fsDisp._cache = {};
+            window.fsDisp.failed = false;
+            window.fsDisp._reading = false;
+            window.fsDisp.readFS("/root");
+        }
+        if (!window.remoteMode && wasRemote && window.fsDisp) {
+            window.fsDisp.failed = false;
+            window.fsDisp._reading = false;
+            window.fsDisp.readFS(window.settings.cwd || "C:\\");
+        }
+    }).on("error", () => { window.remoteMode = false; });
+}, 3000);
+
 // Disable eval()
 window.eval = global.eval = function () {
     throw new Error("eval() is disabled for security reasons.");

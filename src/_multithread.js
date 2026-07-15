@@ -42,7 +42,20 @@ if (cluster.isMaster) {
     }
 
     var queue = {};
-    ipc.on("systeminformation-call", (e, type, id, ...args) => {
+    
+ipc.on("fs-remote-readdir", (e, dirPath) => {
+    if (!remoteMode) { e.sender.send("fs-remote-reply-" + dirPath, {error: "not in remote mode"}); return; }
+    http.get("http://localhost:4001/fs?path=" + encodeURIComponent(dirPath), res => {
+        let data = "";
+        res.on("data", chunk => data += chunk);
+        res.on("end", () => {
+            try { e.sender.send("fs-remote-reply-" + dirPath, {data: JSON.parse(data)}); }
+            catch(err) { e.sender.send("fs-remote-reply-" + dirPath, {error: err.message}); }
+        });
+    }).on("error", err => e.sender.send("fs-remote-reply-" + dirPath, {error: err.message}));
+});
+
+ipc.on("systeminformation-call", (e, type, id, ...args) => {
         if (!si[type]) {
             signale.warn("Illegal request for systeminformation");
             return;

@@ -179,7 +179,7 @@ class Keyboard {
                         }
 
                         // Keep focus on the terminal
-                        if (window.keyboard.linkedToTerm) window.term[window.currentTerm].term.focus();
+                       if (window.keyboard.linkedToTerm && window.term && window.term[window.currentTerm]) window.term[window.currentTerm].term.focus();
                         if(this.container.dataset.passwordMode == "false")
                             window.audioManager.stdin.play();
                         e.preventDefault();
@@ -526,10 +526,10 @@ class Keyboard {
 
 
         if (window.keyboard.linkedToTerm) {
-            window.term[window.currentTerm].write(cmd);
+            if (window.term && window.term[window.currentTerm]) window.term[window.currentTerm].write(cmd);
         } else {
             let isDelete = false;
-            if (typeof document.activeElement.value !== "undefined") {
+            if (document.activeElement && typeof document.activeElement.value !== "undefined") {
                 switch(cmd) {
                     case "":
                         document.activeElement.value = document.activeElement.value.slice(0, -1);
