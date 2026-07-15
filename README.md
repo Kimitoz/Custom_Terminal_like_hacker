@@ -117,7 +117,9 @@ This fork is also released under GPL-3.0.
 
 ## Screenshots
 
-*Coming soon*
+
+<img width="1354" height="760" alt="EDUX_UI" src="https://github.com/user-attachments/assets/f9e215f4-9789-4027-8236-9cae8c9a812f" />
+
 
 ---
 
